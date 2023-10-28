@@ -87,3 +87,18 @@ impl UnixSocketPort {
         read_data.iter().map(|x| *x as char).collect()
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::port::unix_port::{UnixSocketPort, UnixSocketSettings};
+
+    #[test]
+    fn should_construct_with_correct_path() {
+        let path = "path".to_string();
+        let config = UnixSocketSettings {
+            socket_path: path.clone(),
+        };
+        let port = UnixSocketPort::new(config);
+        assert_eq!(port.socket_path, path)
+    }
+}
