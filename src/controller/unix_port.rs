@@ -1,12 +1,11 @@
-use crate::port::InputPort;
+use crate::controller::InputPort;
+use crate::serializer::Operation;
 use async_trait::async_trait;
-use snailquote::unescape;
-use std::collections::HashMap;
 use tokio::io;
 use tokio::io::Interest;
 use tokio::net::UnixStream;
 
-const STREAM_MAX_SIZE_IN_BYTES: usize = 256;
+const STREAM_MAX_SIZE_IN_BYTES: usize = 470;
 const INITIAL_BUFFER_VALUE: u8 = 0;
 
 pub(crate) struct UnixSocketPort {
@@ -31,7 +30,9 @@ impl InputPort for UnixSocketPort {
             if stream_status.is_readable() {
                 match data_stream_from_unix_socket.try_read(&mut read_data) {
                     Ok(_) => {
-                        Self::present_output(&mut read_data);
+                        let encoded_values = Self::ascii_encode_and_join(&mut read_data);
+                        let operation = Operation::new(encoded_values);
+                        println!("{:?}", operation);
                     }
                     Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
                         continue;
@@ -51,38 +52,6 @@ impl UnixSocketPort {
             socket_path: String::from(init_settings.socket_path),
         };
     }
-
-    fn present_output(read_data: &mut Vec<u8>) {
-        let coded_data: String = Self::ascii_encode_and_join(read_data);
-        let map_of_audit_information = coded_data
-            .split(" ")
-            .into_iter()
-            .map(|unsplit_pair| Self::split_by_key_and_value(unsplit_pair))
-            .filter(|tuple_of_strings| !tuple_of_strings.1.is_empty())
-            .map(|tuple_of_strings| {
-                (
-                    tuple_of_strings.0,
-                    Self::reduce_equal_signs(tuple_of_strings.1),
-                )
-            })
-            .collect::<HashMap<_, _>>();
-        if map_of_audit_information.contains_key("key") {
-            println!("{:?}", map_of_audit_information);
-            println!(
-                "Kind of operation: {}",
-                unescape(map_of_audit_information.get("key").unwrap()).unwrap()
-            );
-        }
-    }
-
-    fn split_by_key_and_value(x: &str) -> (&str, &str) {
-        x.split_at(x.find('=').or(Option::from(0)).unwrap())
-    }
-
-    fn reduce_equal_signs(x: &str) -> &str {
-        return &x[x.find('=').or(Option::from(0)).unwrap() + 1..];
-    }
-
     fn ascii_encode_and_join(read_data: &mut Vec<u8>) -> String {
         read_data.iter().map(|x| *x as char).collect()
     }
@@ -90,7 +59,7 @@ impl UnixSocketPort {
 
 #[cfg(test)]
 mod test {
-    use crate::port::unix_port::{UnixSocketPort, UnixSocketSettings};
+    use crate::controller::unix_port::{UnixSocketPort, UnixSocketSettings};
 
     #[test]
     fn should_construct_with_correct_path() {
