@@ -1,17 +1,21 @@
 mod controller;
 mod serializer;
+mod view;
 
 use crate::controller::unix_port::{UnixSocketPort, UnixSocketSettings};
 use crate::controller::InputPort;
-use std::io;
+use crate::view::MockView;
+use log::Level;
 
 static SOCKET_ADDRESS: &str = "/var/run/dispatcher";
 
 #[tokio::main]
-async fn main() -> io::Result<()> {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    simple_logger::init_with_level(Level::Debug)?;
     let port_settings = UnixSocketSettings {
         socket_path: String::from(SOCKET_ADDRESS),
     };
-    let port = UnixSocketPort::new(port_settings);
-    return port.receive().await;
+    let port = UnixSocketPort::new(port_settings, Box::new(MockView {}));
+    port.receive().await.expect("Fatal: Port cannot recieve inputs.");
+    Ok(())
 }
