@@ -22,3 +22,5 @@ jobs:
       run: cargo test --verbose
     - name: Auto Version Tag
       uses: tamasfe/auto-tag@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
