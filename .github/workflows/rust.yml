@@ -20,4 +20,8 @@ jobs:
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
+    - name: tag-version
+      uses: juliansangillo/tag-version@v1.5
+      with:  
+        production-branch: main  
                   
