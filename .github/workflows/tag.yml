@@ -1,0 +1,31 @@
+name: 'tag-version'
+description: 'Provides automated versioning of your commits using git tags each time your CI/CD workflow runs.'
+branding:
+  icon: 'tag'
+  color: 'purple'
+inputs:
+  production-branch:
+    description: 'The branch to use for stable releases in production. Default is master'
+    required: false
+    default: master
+  test-branch:
+    description: 'The branch to use for test deployments. Default is test'
+    required: false
+    default: test
+  dev-branch:
+    description: 'The branch to use for dev deployments. Default is develop'
+    required: false
+    default: develop
+outputs:
+  revision:
+    description: 'The new version that was created and tagged in the format of <major>.<minor>.<build>[.<pre-release-tag>]'
+    value: ${{ steps.tag-version.outputs.revision }}
+  is-prerelease:
+    description: 'Is true if this is a release into a non-production environment and indicates the build may be unstable. Returns false otherwise.'
+    value: ${{ steps.tag-version.outputs.is-prerelease }}
+runs:
+  using: composite
+  steps:
+    - id: tag-version
+      run: bash $GITHUB_ACTION_PATH/src/tag-version.sh ${{ inputs.production-branch }} ${{ inputs.test-branch }} ${{ inputs.dev-branch }}
+      shell: bash
