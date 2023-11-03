@@ -20,7 +20,5 @@ jobs:
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
-    - name: tags-versioning
-      # You may pin to the exact commit or the version.
-      # uses: georgeneto/tags-versioning@50eb0a3bfac7a6d055e2b41de87ee0b02dc33eeb
-      uses: georgeneto/tags-versioning@v1
+    - name: Auto Version Tag
+      uses: tamasfe/auto-tag@v5
