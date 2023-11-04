@@ -13,6 +13,11 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0 # required for github-action-get-previous-tag
+      - name: Get Previous tag
+        id: pretag
+        uses: 'WyriHaximus/github-action-get-previous-tag@v1'
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Bump semantic version
         id: semverinc
         uses: paulhatch/semantic-version@v5.3.0
@@ -47,8 +52,7 @@ jobs:
         uses: orhun/git-cliff-action@v2
         id: git-cliff
         with:
-          config: cliff.toml
-          args: --verbose -t ${{ steps.semverinc.outputs.version }} -o notes.toml
+          args: $(git show-ref ${{ steps.pretag.outputs.tag }} | awk '{ print $1 }')..${{ steps.semverinc.outputs.version }}
         env:
           OUTPUT: CHANGELOG.md
       - name: Create release
