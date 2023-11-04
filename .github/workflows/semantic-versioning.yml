@@ -31,13 +31,6 @@ jobs:
 
       - name: Create release
         id: create_release_id
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.semver.outputs.patch }}
-          release_name: Release ${{ steps.semver.outputs.patch }}
-
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
