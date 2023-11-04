@@ -11,7 +11,7 @@
 ![GitHub tag (with filter)](https://img.shields.io/github/v/tag/legeof008/linux-fs-audit)
 
 ## About this project
-This project bases on [`audit`](https://man7.org/linux/man-pages/man8/auditd.8.htmlhttps://man7.org/linux/man-pages/man8/auditd.8.html) Linux Kernel Module, in order to forward
+This project bases on [`audit`](https://man7.org/linux/man-pages/man8/auditd.8.html) Linux Kernel Module, in order to forward
 the knowledge of auditing information into the userspace with any chosen protocol (for this project's purpose it'll be `http` web protocol).
 ## Development `Ubuntu 22.04.3 LTS`
 In order to install dependencies, run :
@@ -26,7 +26,24 @@ Or for release-optimised version :
 ```angular2html
 cargo build --release --verbose
 ```
-## Running in the test enviroment
+## Running the application with app-specific settings
+In order to run the application, within the same directory as the program, `settings.json` has to be present.
+Directory view:
+```console
+./
+    -> ./settings.json (settings)
+    -> ./linux-fs-audit (executable)
+```
+It's contents should be:
+```json
+{
+  "dispatcher_directory":"{ path to dispatcher/unix socket }",
+  "view_mode": "{ Mock/Http }",
+  "http_destination": "{ http path to the receiver application }"
+}
+```
+More information is provided in [this article](https://github.com/legeof008/linux-fs-audit/wiki/Project-configuration-%E2%80%90-Ubuntu-22.04.3-LTS).
+## Running in the test environment
 For further information consult [this article](https://github.com/legeof008/linux-fs-audit/wiki/Development-setup-%E2%80%90-Ubuntu-22.04.3-LTS).
 The most important step is running the built executable with `superuser` privileges, in order to connect to a `Unix` socket,
 which is a default method of communication

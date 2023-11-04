@@ -8,7 +8,7 @@ const UNKNOWN_FIELD: &'static str = "unknown";
 
 const USERNAME_KEY: &'static str = "UID";
 
-const GROUP_KEY: &'static str = "SGID";
+const GROUP_KEY: &'static str = "GID";
 
 const EXECUTABLE_KEY: &'static str = "exe";
 
