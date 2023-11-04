@@ -52,6 +52,14 @@ jobs:
         debug: false
         # If true, the branch will be used to select the maximum version.
         version_from_branch: false
+    - name: Generate a changelog
+      uses: orhun/git-cliff-action@v2
+      id: git-cliff
+      with:
+        config: cliff.toml
+        args: --verbose -t ${{ steps.semverinc.outputs.version }} -o notes.toml
+      env:
+          OUTPUT: CHANGELOG.md
     - name: Create release
       id: create_release_id
       uses: actions/create-release@v1
@@ -60,6 +68,7 @@ jobs:
       with:
         tag_name: ${{ steps.semverinc.outputs.version }}
         release_name: Release ${{ steps.semverinc.outputs.version_tag }}
+        body_path: notes.toml
 
     - name: Build release version
       run: cargo build --release --verbose
