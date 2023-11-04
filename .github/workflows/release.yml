@@ -52,7 +52,7 @@ jobs:
         uses: orhun/git-cliff-action@v2
         id: git-cliff
         with:
-          args: $(git show-ref ${{ steps.pretag.outputs.tag }} | awk '{ print $1 }')..${{ steps.semverinc.outputs.version }} -o notes.toml
+          args: $(git show-ref ${{ steps.pretag.outputs.tag }} | awk '{ print $1 }')..$(git show-ref ${{ steps.semverinc.outputs.version }} | awk '{ print $1 }') -o notes.toml
         env:
           OUTPUT: CHANGELOG.md
       - name: Create release
