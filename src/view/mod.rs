@@ -1,9 +1,9 @@
 mod http_view;
 mod mock_view;
 
+use crate::serializer::Operation;
 use async_trait::async_trait;
 use reqwest::Client;
-use crate::serializer::Operation;
 
 #[async_trait]
 pub(crate) trait View: Send + Sync {

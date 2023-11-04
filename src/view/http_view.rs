@@ -3,7 +3,7 @@ use crate::view::{HttpView, View};
 use async_trait::async_trait;
 
 impl HttpView {
-    fn new(destination_url: &str) -> Self {
+    pub(crate) fn new(destination_url: &str) -> Self {
         return Self {
             destination_url: destination_url.to_string(),
             client: reqwest::Client::new(),

@@ -1,0 +1,4 @@
+{
+  "dispatcher_directory":"/var/run/dispatcher",
+  "view_mode": "Mock"
+}
