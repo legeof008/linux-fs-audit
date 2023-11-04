@@ -1,0 +1,5 @@
+{
+  "dispatcher_directory":"/var/run/disp",
+  "view_mode": "Mock",
+  "http_destination": "localhost:9000"
+}

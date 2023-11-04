@@ -8,7 +8,7 @@ const UNKNOWN_FIELD: &'static str = "unknown";
 
 const USERNAME_KEY: &'static str = "UID";
 
-const GROUP_KEY: &'static str = "SGID";
+const GROUP_KEY: &'static str = "GID";
 
 const EXECUTABLE_KEY: &'static str = "exe";
 
@@ -19,7 +19,7 @@ const OPERATION_KEY: &'static str = "key";
 impl Operation {
     pub(crate) fn new(log_output: String) -> Option<Self> {
         let values_map = map_of_values!(log_output);
-        if values_map.contains_key("key") {
+        if values_map.contains_key(OPERATION_KEY) {
             return Some(Self {
                 user: unescape(
                     values_map
