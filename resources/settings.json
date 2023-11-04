@@ -1,5 +1,4 @@
 {
   "dispatcher_directory":"/var/run/dispatcher",
-  "view_mode": "Mock",
-  "http_destination": "localhost:8085"
+  "view_mode": "Mock"
 }

@@ -3,7 +3,6 @@ use crate::encode;
 use crate::serializer::Operation;
 use crate::view::View;
 use async_trait::async_trait;
-use colored::Colorize;
 use tokio::io;
 use tokio::io::Interest;
 use tokio::net::UnixStream;
@@ -39,7 +38,7 @@ impl InputPort for UnixSocketPort {
                         log::debug!("Received message: {}", encoded_values);
                         let operation = Operation::new(encoded_values);
                         if operation.is_some() {
-                            log::debug!("{}: {:?}", "Operation observed".green(),operation.iter().clone());
+                            log::debug!("Operation observed: {:?}", operation.iter().clone());
                             self.view
                                 .update(operation.unwrap())
                                 .await
@@ -47,7 +46,7 @@ impl InputPort for UnixSocketPort {
                         }
                     }
                     Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
-                        log::warn!("{}","Blocking error while reading from socket".yellow());
+                        log::warn!("Blocking error while reading from socket");
                         continue;
                     }
                     Err(e) => {
