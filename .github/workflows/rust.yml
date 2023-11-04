@@ -52,6 +52,11 @@ jobs:
         debug: false
         # If true, the branch will be used to select the maximum version.
         version_from_branch: false
+    - name: Create Release Notes
+      uses: docker://decathlon/release-notes-generator-action:2.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        OUTPUT_FOLDER: .
     - name: Create release
       id: create_release_id
       uses: actions/create-release@v1
@@ -60,6 +65,7 @@ jobs:
       with:
         tag_name: ${{ steps.semverinc.outputs.version }}
         release_name: Release ${{ steps.semverinc.outputs.version_tag }}
+        body_path: ./release_file.md
 
     - name: Build release version
       run: cargo build --release --verbose
