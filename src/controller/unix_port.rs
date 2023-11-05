@@ -39,7 +39,11 @@ impl InputPort for UnixSocketPort {
                         log::debug!("Received message: {}", encoded_values);
                         let operation = Operation::new(encoded_values);
                         if operation.is_some() {
-                            log::debug!("{}: {:?}", "Operation observed".green(),operation.iter().clone());
+                            log::debug!(
+                                "{}: {:?}",
+                                "Operation observed".green(),
+                                operation.iter().clone()
+                            );
                             self.view
                                 .update(operation.unwrap())
                                 .await
@@ -47,7 +51,7 @@ impl InputPort for UnixSocketPort {
                         }
                     }
                     Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
-                        log::warn!("{}","Blocking error while reading from socket".yellow());
+                        log::warn!("{}", "Blocking error while reading from socket".yellow());
                         continue;
                     }
                     Err(e) => {
