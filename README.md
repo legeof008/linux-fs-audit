@@ -16,7 +16,7 @@ the knowledge of auditing information into the userspace with any chosen protoco
 ## Development `Ubuntu 22.04.3 LTS`
 In order to install dependencies, run :
 ```angular2html
-apt install -y auditd libaudit1 libauparse0 libssl-dev pkg-config
+apt install -y auditd libaudit1 libauparse0 libssl-dev pkg-config libsqlite3-dev
 ```
 Then to build the application run it in the working directory of the project :
 ```angular2html
