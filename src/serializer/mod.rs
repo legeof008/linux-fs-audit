@@ -5,11 +5,11 @@ pub mod audit_parse;
 
 #[derive(Debug, Serialize)]
 pub(crate) struct Operation {
-    user: String,
-    group: String,
-    executable: String,
-    syscall: String,
-    key: OperationKey,
+    pub(crate) user: String,
+    pub(crate) group: String,
+    pub(crate) executable: String,
+    pub(crate) syscall: String,
+    pub(crate) key: OperationKey,
 }
 
 #[derive(Debug, Serialize)]

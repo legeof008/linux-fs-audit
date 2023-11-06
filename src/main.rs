@@ -5,7 +5,7 @@ mod view;
 use crate::controller::unix_port::{UnixSocketPort, UnixSocketSettings};
 use crate::controller::InputPort;
 use crate::settings::{configure, ViewMode};
-use crate::view::{HttpView, MockView, View};
+use crate::view::{HttpView, MockView, SqliteView, View};
 use colored::Colorize;
 use log::Level;
 
@@ -18,15 +18,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     log::debug!("Loaded settings from: {}", SETTINGS_ADDRESS.cyan());
 
     log::info!(
-        "Dispatcher path chosen was: {} ; Chosen view method was: {} ; Http requests will be forwarded to {}",
+        "Dispatcher path chosen was: {} ; Chosen view method was: {}.",
         configs.dispatcher_directory.red(),
         configs.view_mode.to_string().green(),
-        configs.http_destination.yellow()
     );
 
     let view: Box<dyn View> = match configs.view_mode {
-        ViewMode::Http => Box::new(HttpView::new(configs.http_destination.as_str())),
+        ViewMode::Http => Box::new(HttpView::new(
+            configs.http_settings.http_destination.as_str(),
+        )),
         ViewMode::Mock => Box::new(MockView {}),
+        ViewMode::Sqlite => Box::new(SqliteView::new(configs.sqlite_settings.db_path.as_str())),
     };
 
     let port_settings = UnixSocketSettings {
