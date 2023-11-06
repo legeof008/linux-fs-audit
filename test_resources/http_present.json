@@ -1,3 +1,5 @@
 {
-  "http_destination": "localhost:9000"
+  "http_settings": {
+    "http_destination": "localhost:9000"
+  }
 }
