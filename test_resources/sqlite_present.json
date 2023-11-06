@@ -1,0 +1,5 @@
+{
+  "sqlite_settings": {
+    "db_path": "db.sqlite"
+  }
+}
