@@ -8,7 +8,7 @@ use tokio::io;
 use tokio::io::Interest;
 use tokio::net::UnixStream;
 
-const STREAM_MAX_SIZE_IN_BYTES: usize = 470;
+const STREAM_MAX_SIZE_IN_BYTES: usize = 512;
 const INITIAL_BUFFER_VALUE: u8 = 0;
 
 pub(crate) struct UnixSocketPort {
