@@ -37,9 +37,9 @@ Directory view:
 It's contents should be:
 ```json
 {
+  "log_level": "{ Debug/Info }",
   "dispatcher_directory":"{ path to dispatcher/unix socket }",
   "view_mode": "{ Mock/Http/Sqlite }",
-  "view_mode": "Sqlite",
   "http_settings": {
     "http_destination": "localhost:8085"
   },
