@@ -9,10 +9,11 @@ pub(crate) struct Operation {
     pub(crate) group: String,
     pub(crate) executable: String,
     pub(crate) syscall: String,
+    pub(crate) timestamp: String,
     pub(crate) key: OperationKey,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, PartialEq)]
 pub(crate) enum OperationKey {
     READ,
     WRITE,
