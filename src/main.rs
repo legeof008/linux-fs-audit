@@ -4,7 +4,7 @@ mod settings;
 mod view;
 use crate::controller::unix_port::{UnixSocketPort, UnixSocketSettings};
 use crate::controller::InputPort;
-use crate::settings::{configure, ViewMode};
+use crate::settings::{configure, LogSettings, ViewMode};
 use crate::view::{HttpView, MockView, SqliteView, View};
 use colored::Colorize;
 use log::Level;
@@ -12,9 +12,11 @@ use log::Level;
 static SETTINGS_ADDRESS: &str = "./resources/settings.json";
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    simple_logger::init_with_level(Level::Debug)?;
     let configs = configure(SETTINGS_ADDRESS)?;
-
+    simple_logger::init_with_level(match configs.log_level {
+        LogSettings::Debug => Level::Debug,
+        LogSettings::Info => Level::Info,
+    })?;
     log::debug!("Loaded settings from: {}", SETTINGS_ADDRESS.cyan());
 
     log::info!(

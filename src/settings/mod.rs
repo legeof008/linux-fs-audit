@@ -14,6 +14,11 @@ pub(crate) enum ViewMode {
     Sqlite,
     Mock,
 }
+#[derive(Debug, Deserialize, PartialEq)]
+pub(crate) enum LogSettings {
+    Debug,
+    Info,
+}
 
 impl fmt::Display for ViewMode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -31,6 +36,8 @@ pub(crate) struct StartupSettings {
     pub(super) http_settings: HttpSettings,
     #[serde(default = "default_sqlite_settings")]
     pub(super) sqlite_settings: SqliteSettings,
+    #[serde(default = "default_log_level")]
+    pub(super) log_level: LogSettings,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
@@ -50,7 +57,9 @@ fn default_dispatcher_directory() -> String {
 fn default_view_mode() -> ViewMode {
     return ViewMode::Mock;
 }
-
+fn default_log_level() -> LogSettings {
+    return LogSettings::Info;
+}
 fn default_sqlite_settings() -> SqliteSettings {
     return SqliteSettings {
         db_path: SQLITE_VIEW_DB_PATH_DEFAULT.to_string(),
@@ -77,7 +86,7 @@ pub(crate) fn configure(config_file_path: &str) -> Result<StartupSettings, serde
 
 #[cfg(test)]
 mod test {
-    use crate::settings::{configure, ViewMode};
+    use crate::settings::{configure, LogSettings, ViewMode};
 
     #[test]
     fn if_file_present_should_have_correct_settings_set() {
@@ -87,6 +96,7 @@ mod test {
             "localhost:9000"
         );
         assert_eq!(read_configs.view_mode, ViewMode::Mock);
+        assert_eq!(read_configs.log_level, LogSettings::Info);
         assert_eq!(read_configs.dispatcher_directory, "/var/run/disp");
     }
 
@@ -134,5 +144,10 @@ mod test {
         );
         assert_eq!(read_configs.view_mode, ViewMode::Http);
         assert_eq!(read_configs.dispatcher_directory, "/var/run/dispatcher");
+    }
+    #[test]
+    fn if_file_present_should_have_log_level_present_others_on_default() {
+        let read_configs = configure("test_resources/log_present.json").unwrap();
+        assert_eq!(read_configs.log_level, LogSettings::Debug);
     }
 }
