@@ -1,5 +1,10 @@
 {
-  "dispatcher_directory":"/var/run/dispatcher",
-  "view_mode": "Mock",
-  "http_destination": "localhost:8085"
+  "dispatcher_directory": "",
+  "view_mode": "Sqlite",
+  "http_settings": {
+    "http_destination": "localhost:8085"
+  },
+  "sqlite_settings": {
+    "db_path": "test_resources/reports.sqlite"
+  }
 }
