@@ -1,4 +1,4 @@
-# Linux File System Auditing API
+# Linux File System Auditior
 [![forthebadge made-with-rust](http://ForTheBadge.com/images/badges/made-with-rust.svg)](https://www.rust-lang.org/)
 ![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
 ![Red Hat](https://img.shields.io/badge/Red%20Hat-EE0000?style=for-the-badge&logo=redhat&logoColor=white)
@@ -12,7 +12,7 @@
 
 ## About this project
 This project bases on [`audit`](https://man7.org/linux/man-pages/man8/auditd.8.html) Linux Kernel Module, in order to forward
-the knowledge of auditing information into the userspace with any chosen protocol (for this project's purpose it'll be `http` web protocol).
+the knowledge of auditing information into the userspace.
 ## Development `Ubuntu 22.04.3 LTS`
 In order to install dependencies, run :
 ```angular2html
@@ -38,10 +38,17 @@ It's contents should be:
 ```json
 {
   "dispatcher_directory":"{ path to dispatcher/unix socket }",
-  "view_mode": "{ Mock/Http }",
-  "http_destination": "{ http path to the receiver application }"
+  "view_mode": "{ Mock/Http/Sqlite }",
+  "view_mode": "Sqlite",
+  "http_settings": {
+    "http_destination": "localhost:8085"
+  },
+  "sqlite_settings": {
+    "db_path": "{ path to .sqlite db}"
+  }
 }
 ```
+If one view is chosen, the information about the others doesn't have to be specified.
 More information is provided in [this article](https://github.com/legeof008/linux-fs-audit/wiki/Project-configuration-%E2%80%90-Ubuntu-22.04.3-LTS).
 ## Running in the test environment
 For further information consult [this article](https://github.com/legeof008/linux-fs-audit/wiki/Development-setup-%E2%80%90-Ubuntu-22.04.3-LTS).
