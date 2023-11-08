@@ -1,7 +1,9 @@
 use crate::serializer::{Operation, OperationKey};
 use crate::{map_of_values, reduce_equals_sign, split_key_val, unreferenced};
+use regex::Regex;
 use snailquote::unescape;
 use std::collections::HashMap;
+use std::error::Error;
 use std::string::ToString;
 
 const UNKNOWN_FIELD: &'static str = "unknown";
@@ -15,6 +17,7 @@ const EXECUTABLE_KEY: &'static str = "exe";
 const SYSCALL_KEY: &'static str = "SYSCALL";
 
 const OPERATION_KEY: &'static str = "key";
+const TIMESTAMP_KEY: &'static str = "msg";
 
 impl Operation {
     pub(crate) fn new(log_output: String) -> Option<Self> {
@@ -53,6 +56,10 @@ impl Operation {
                 )
                 .unwrap()
                 .to_string(),
+                timestamp: LogParsingUtils::get_unix_time_from_timestamp(
+                    values_map.get(TIMESTAMP_KEY).unwrap().to_string(),
+                )
+                .unwrap(),
                 key: LogParsingUtils::get_operation_from_key(
                     values_map
                         .get(OPERATION_KEY)
@@ -93,6 +100,21 @@ impl LogParsingUtils {
             false => OperationKey::WRITE,
         }
     }
+    fn get_unix_time_from_timestamp(msg_str: String) -> Result<String, Box<dyn Error>> {
+        let unix_time_capture_regex = Regex::new(r"^audit\((\d+)\.\d+:\d+\):$")?;
+        let Some(captured_values) = unix_time_capture_regex.captures(msg_str.as_str()) else {
+            return Err(Box::try_from(regex::Error::Syntax(
+                "Log line not compliant with the usual auditd format.".to_string(),
+            ))?);
+        };
+        return Ok(captured_values
+            .iter()
+            .last()
+            .unwrap()
+            .unwrap()
+            .as_str()
+            .to_string());
+    }
 }
 
 mod parser_macros {
@@ -126,13 +148,19 @@ mod parser_macros {
             LogParsingUtils::get_operation_from_key($x)
         };
     }
+    #[macro_export]
+    macro_rules! timestamp {
+        ($x:tt) => {
+            LogParsingUtils::get_unix_time_from_timestamp($x)
+        };
+    }
 }
 
 #[cfg(test)]
 mod test {
     use crate::serializer::audit_parse::{LogParsingUtils, UNKNOWN_FIELD};
     use crate::serializer::{Operation, OperationKey};
-    use crate::{get_key_from_op, map_of_values, reduce_equals_sign, split_key_val};
+    use crate::{get_key_from_op, map_of_values, reduce_equals_sign, split_key_val, timestamp};
     use std::collections::HashMap;
 
     const COMPLIANT_LOG_LINE: &str = "type=SYSCALL msg=audit(1698576562.955:570): arch=c000003e syscall=257 success=yes exit=3 a0=ffffff9c a1=55a917750550 a2=90800 a3=0 items=1 ppid=20120 pid=20680 auid=1000 uid=1000 gid=1000 euid=1000 suid=1000 fsuid=1000 egid=1000 sgid=1000 fsgid=1000 tty=pts2 ses=14 comm=\"ls\" exe=\"/usr/bin/ls\" subj=unconfined key=\"READ\"ARCH=x86_64 AUID=\"maciek\" UID=\"maciek\" GID=\"maciek\" EUID=\"maciek\" SUID=\"maciek\" FSUID=\"maciek\" EGID=\"maciek\" SGID=\"maciek\"";
@@ -188,5 +216,15 @@ mod test {
         let operation = Operation::new(input);
         //then
         assert_eq!(operation.unwrap().syscall, UNKNOWN_FIELD);
+    }
+    #[test]
+    fn should_extract_timestamp() {
+        //give
+        let expected_timestamp = "1698576562".to_string();
+        //when
+        let timestamp_string = "audit(1698576562.955:570):".to_string();
+        let result = timestamp!(timestamp_string).unwrap();
+        //then
+        assert_eq!(result, expected_timestamp);
     }
 }
