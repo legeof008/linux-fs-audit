@@ -1,6 +1,6 @@
 [package]
 name = "linux-fs-audit"
-version = "0.0.1"
+version = "2.0.1"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -17,3 +17,8 @@ simple_logger = "4.1.0"
 colored = "2.0.4"
 tokio-rusqlite = "0.4.0"
 rusqlite = "0.29.0"
+mockito = "1.2.0"
+cargo-llvm-cov = "0.5.36"
+futures = "0.3.29"
+tempfile = "3.8.1"
+regex = "1.10.2"
