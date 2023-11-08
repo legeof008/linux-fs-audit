@@ -28,7 +28,9 @@ impl SqliteView {
     }
 
     fn create_schema_if_not_present(db_path: &str) -> Result<(), Box<dyn Error>> {
+        log::info!("Opening an {} connection", "Sqlite".yellow());
         let conn = rusqlite::Connection::open(db_path)?;
+        log::debug!("Injecting a {} to {}", "schema".green(), db_path.green());
         let _ = conn.execute(SQL_CREATE_TABLE_IF_NOT_EXIST, [])?;
         return Ok(());
     }
