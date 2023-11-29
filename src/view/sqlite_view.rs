@@ -14,7 +14,7 @@ create table IF NOT EXISTS operations
                     executable    TEXT not null,
                     syscall       TEXT not null,
                     operation_key TEXT not null,
-                    unix_observation_time INTEGER
+                    unix_observation_time INTEGER PRIMARY KEY
                 );
 "#;
 
@@ -41,7 +41,7 @@ impl View for SqliteView {
     async fn update(&self, operation: Operation) -> Result<(), ()> {
         log::info!("Opening an {} connection", "Sqlite".yellow());
         let db_connection = Connection::open(self.db_path.clone()).await.unwrap();
-        log::debug!(
+        log::info!(
             "Inserting {}",
             serde_json::to_string(&operation).unwrap().green()
         );

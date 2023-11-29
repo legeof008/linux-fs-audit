@@ -99,7 +99,7 @@ impl LogParsingUtils {
     fn get_unix_time_from_timestamp() -> Result<String, Box<dyn Error>> {
         let start = SystemTime::now();
         let since_the_epoch = start.duration_since(UNIX_EPOCH)?;
-        return Ok(since_the_epoch.as_millis().to_string());
+        return Ok(since_the_epoch.as_secs().to_string());
     }
 }
 
