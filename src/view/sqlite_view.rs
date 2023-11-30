@@ -1,4 +1,4 @@
-use crate::serializer::Operation;
+use crate::serializer::{FileOperatedOn, Operation};
 use crate::view::{SqliteView, View};
 use async_trait::async_trait;
 use colored::Colorize;
@@ -16,10 +16,16 @@ create table IF NOT EXISTS operations
                     operation_key TEXT not null,
                     unix_observation_time INTEGER PRIMARY KEY
                 );
+create table IF NOT EXISTS files
+                (
+                    absolute_path TEXT not null,
+                    unix_observation_time INTEGER
+                );
 "#;
 
 impl SqliteView {
     pub(crate) fn new(db_path: &str) -> Self {
+        log::debug!("Script ran: {}",SQL_CREATE_TABLE_IF_NOT_EXIST);
         Self::create_schema_if_not_present(db_path)
             .expect("Fatal: could not initiate schema, check if your chosen database exists.");
         return Self {
@@ -49,6 +55,11 @@ impl View for SqliteView {
             "INSERT INTO operations (user,users_group,executable,syscall,operation_key,unix_observation_time) VALUES (?1,?2,?3,?4,?5,?6)",
             params![operation.user,operation.group,operation.executable,operation.syscall,operation.key.to_string(),operation.timestamp],
         )).await.expect("Failed to insert operation data to the database");
+        Ok(())
+    }
+
+    async fn report(&self, operations: Vec<FileOperatedOn>) -> Result<(), ()> {
+        log::info!("Opening an {} connection", "Sqlite".yellow());
         Ok(())
     }
 }

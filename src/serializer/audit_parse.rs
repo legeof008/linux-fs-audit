@@ -1,4 +1,4 @@
-use crate::serializer::{Operation, OperationKey};
+use crate::serializer::{FileOperatedOn, Operation, OperationKey};
 use crate::{map_of_values, reduce_equals_sign, split_key_val, unreferenced};
 use snailquote::unescape;
 use std::collections::HashMap;
@@ -17,6 +17,9 @@ const EXECUTABLE_KEY: &'static str = "exe";
 const SYSCALL_KEY: &'static str = "SYSCALL";
 
 const OPERATION_KEY: &'static str = "key";
+const NAME_KEY: &'static str = "name";
+const PATH_DELIMITER: &'static str = "/";
+const PATH_KEY: &'static str = "PATH";
 
 impl Operation {
     pub(crate) fn new(log_output: String) -> Option<Self> {
@@ -66,6 +69,29 @@ impl Operation {
             });
         }
         return None;
+    }
+}
+
+impl FileOperatedOn {
+    pub(crate) fn new(log_output: String, previous_timestamp: String) -> Option<Vec<Self>> {
+        if !log_output.contains(PATH_KEY) {
+            return None;
+        }
+        let lines: Vec<_> = log_output
+            .lines()
+            .map(|x| x.to_string())
+            .map(|x| map_of_values!(x))
+            .filter(|x| x.contains_key(NAME_KEY))
+            .map(|x| x.get(NAME_KEY).unwrap().clone())
+            .map(|x| String::from(&x[1..x.len() - 1]))
+            .filter(|x| !x.ends_with(PATH_DELIMITER))
+            .map(|x| FileOperatedOn {
+                name: x,
+                timestamp: previous_timestamp.clone(),
+            })
+            .collect();
+        log::debug!("Lines unfiltered {:?}", lines);
+        return Some(lines);
     }
 }
 

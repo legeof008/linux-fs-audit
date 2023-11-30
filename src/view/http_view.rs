@@ -1,4 +1,4 @@
-use crate::serializer::Operation;
+use crate::serializer::{FileOperatedOn, Operation};
 use crate::view::{HttpView, View};
 use async_trait::async_trait;
 use colored::Colorize;
@@ -28,6 +28,10 @@ impl View for HttpView {
             .send()
             .await;
         return Ok(());
+    }
+
+    async fn report(&self, operations: Vec<FileOperatedOn>) -> Result<(), ()> {
+        todo!()
     }
 }
 

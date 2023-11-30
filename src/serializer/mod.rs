@@ -12,6 +12,11 @@ pub(crate) struct Operation {
     pub(crate) timestamp: String,
     pub(crate) key: OperationKey,
 }
+#[derive(Debug, Serialize)]
+pub(crate) struct FileOperatedOn {
+    pub(crate) name: String,
+    pub(crate) timestamp: String,
+}
 
 #[derive(Debug, Serialize, PartialEq)]
 pub(crate) enum OperationKey {
