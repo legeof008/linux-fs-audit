@@ -96,26 +96,42 @@ impl View for SqliteView {
 
 #[cfg(test)]
 mod test {
-    use crate::serializer::{Operation, OperationKey};
+    use crate::serializer::{FileOperatedOn, Operation, OperationKey};
     use crate::view::{SqliteView, View};
     use futures::executor;
     use tempfile::tempdir;
 
     const DB_FILE_NAME: &str = "test.sqlite";
     const COMPLIANT_LOG_LINE: &str = "type=SYSCALL msg=audit(1698576562.955:570): arch=c000003e syscall=257 success=yes exit=3 a0=ffffff9c a1=55a917750550 a2=90800 a3=0 items=1 ppid=20120 pid=20680 auid=1000 uid=1000 gid=1000 euid=1000 suid=1000 fsuid=1000 egid=1000 sgid=1000 fsgid=1000 tty=pts2 ses=14 comm=\"ls\" exe=\"/usr/bin/ls\" subj=unconfined key=\"READ\"ARCH=x86_64 AUID=\"maciek\" UID=\"maciek\" GID=\"maciek\" EUID=\"maciek\" SUID=\"maciek\" FSUID=\"maciek\" EGID=\"maciek\" SGID=\"maciek\"";
-
+    const FILE_LOG_LINE: &str = "type=PATH msg=audit(1364481363.243:24287): item=0 name=\"/etc/ssh/sshd_config\" inode=409248 dev=fd:00 mode=0100600 ouid=0 ogid=0 rdev=00:00 obj=system_u:object_r:etc_t:s0  objtype=NORMAL cap_fp=none cap_fi=none cap_fe=0 cap_fver=0";
     #[test]
-    fn if_operation_has_been_made_check_persistence() {
+    fn if_file_has_been_operated_on_check_persistence() {
         let temporary_sqlite_directory = tempdir().unwrap();
         let db_path = temporary_sqlite_directory.path().join(DB_FILE_NAME);
         let sqlite_view = SqliteView::new(db_path.to_str().unwrap());
+        insert_test_values(sqlite_view);
+        assert_one_entry_is_present_and_has_values_the_same_as_parsed_operation(
+            db_path.clone().into_os_string().into_string().unwrap(),
+        );
+        assert_one_entry_is_present_and_has_values_the_same_as_parsed_file_operated_on(
+            db_path.into_os_string().into_string().unwrap(),
+        );
+    }
+
+    fn insert_test_values(sqlite_view: SqliteView) {
         executor::block_on(
             sqlite_view.update(Operation::new(COMPLIANT_LOG_LINE.to_string()).unwrap()),
         )
         .unwrap();
-        assert_one_entry_is_present_and_has_values_the_same_as_parsed_operation(
-            db_path.into_os_string().into_string().unwrap(),
-        );
+        executor::block_on(
+            sqlite_view.report(
+                FileOperatedOn::new(FILE_LOG_LINE.to_string(), 1701533809.to_string())
+                    .unwrap()
+                    .get(0)
+                    .unwrap()
+                    .clone(),
+            ),
+        ).unwrap();
     }
 
     fn assert_one_entry_is_present_and_has_values_the_same_as_parsed_operation(db_path: String) {
@@ -127,6 +143,16 @@ mod test {
         assert_eq!(expected.executable, result.executable);
         assert_eq!(expected.user, result.user);
         assert_eq!(expected.group, result.group);
+    }
+
+    fn assert_one_entry_is_present_and_has_values_the_same_as_parsed_file_operated_on(
+        db_path: String,
+    ) {
+        let result = get_last_entry_operated_on_from_db(db_path).unwrap();
+        let expected = FileOperatedOn::new(FILE_LOG_LINE.to_string(), "123".to_string()).unwrap();
+        let entry = expected.get(0);
+        assert_eq!(entry.unwrap().name, result.name);
+        //assert_eq!(expected.timestamp, result.timestamp);
     }
 
     fn get_last_entry_from_db(db_path: String) -> Result<Operation, Box<dyn std::error::Error>> {
@@ -142,6 +168,21 @@ mod test {
                 syscall: row.get(3)?,
                 timestamp: row.get(4)?,
                 key: OperationKey::READ,
+            })
+        })?;
+        let result = operations_iter.last().unwrap()?;
+        return Ok(result);
+    }
+    fn get_last_entry_operated_on_from_db(
+        db_path: String,
+    ) -> Result<FileOperatedOn, Box<dyn std::error::Error>> {
+        let conn = rusqlite::Connection::open(db_path).unwrap();
+        let mut stmt =
+            conn.prepare("SELECT unix_observation_time, absolute_path FROM operated_on_files")?;
+        let operations_iter = stmt.query_map([], |row| {
+            Ok(FileOperatedOn {
+                name: row.get(1)?,
+                timestamp: 1701533809.to_string()
             })
         })?;
         let result = operations_iter.last().unwrap()?;

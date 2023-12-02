@@ -39,8 +39,7 @@ impl InputPort for UnixSocketPort {
                         log::debug!("Received message: {}", encoded_values);
                         let operation = Operation::new(encoded_values.clone());
                         if operation.is_some() {
-                            previous_timestamp =
-                               operation.as_ref().unwrap().timestamp.clone();
+                            previous_timestamp = operation.as_ref().unwrap().timestamp.clone();
                             log::debug!("{} : {}", "Previous timestamp".cyan(), previous_timestamp);
                             self.update_operation_observed(operation).await;
                         }

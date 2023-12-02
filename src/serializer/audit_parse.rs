@@ -165,11 +165,12 @@ mod parser_macros {
 #[cfg(test)]
 mod test {
     use crate::serializer::audit_parse::{LogParsingUtils, UNKNOWN_FIELD};
-    use crate::serializer::{Operation, OperationKey};
+    use crate::serializer::{FileOperatedOn, Operation, OperationKey};
     use crate::{get_key_from_op, map_of_values, reduce_equals_sign, split_key_val};
     use std::collections::HashMap;
 
     const COMPLIANT_LOG_LINE: &str = "type=SYSCALL msg=audit(1698576562.955:570): arch=c000003e syscall=257 success=yes exit=3 a0=ffffff9c a1=55a917750550 a2=90800 a3=0 items=1 ppid=20120 pid=20680 auid=1000 uid=1000 gid=1000 euid=1000 suid=1000 fsuid=1000 egid=1000 sgid=1000 fsgid=1000 tty=pts2 ses=14 comm=\"ls\" exe=\"/usr/bin/ls\" subj=unconfined key=\"READ\"ARCH=x86_64 AUID=\"maciek\" UID=\"maciek\" GID=\"maciek\" EUID=\"maciek\" SUID=\"maciek\" FSUID=\"maciek\" EGID=\"maciek\" SGID=\"maciek\"";
+    const FILE_LOG_LINE: &str = "type=PATH msg=audit(1364481363.243:24287): item=0 name=\"/etc/ssh/sshd_config\" inode=409248 dev=fd:00 mode=0100600 ouid=0 ogid=0 rdev=00:00 obj=system_u:object_r:etc_t:s0  objtype=NORMAL cap_fp=none cap_fi=none cap_fe=0 cap_fver=0";
     const NUMBER_OF_SPACES_IN_LINE: usize = 36;
 
     #[test]
@@ -222,5 +223,19 @@ mod test {
         let operation = Operation::new(input);
         //then
         assert_eq!(operation.unwrap().syscall, UNKNOWN_FIELD);
+    }
+
+    #[test]
+    fn should_create_files_operated_on_from_compliant_line() {
+        //given
+        let input = String::from(FILE_LOG_LINE);
+        //when
+        let files = FileOperatedOn::new(input, "123".to_string());
+        //then
+        assert!(files.is_some());
+        let unwraped_files = files.unwrap();
+        assert_eq!(unwraped_files.len(), 1);
+        assert_eq!(unwraped_files.get(0).unwrap().name, "/etc/ssh/sshd_config");
+        assert_eq!(unwraped_files.get(0).unwrap().timestamp, "123");
     }
 }
