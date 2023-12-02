@@ -14,7 +14,7 @@ create table IF NOT EXISTS operations
                     executable    TEXT not null,
                     syscall       TEXT not null,
                     operation_key TEXT not null,
-                    unix_observation_time INTEGER PRIMARY KEY
+                    unix_observation_time INTEGER
                 );
 "#;
 const FILES_SCHEMA: &str = r#"

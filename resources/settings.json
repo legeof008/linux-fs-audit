@@ -1,6 +1,6 @@
 {
   "log_level" : "Debug",
-  "dispatcher_directory": "/home/maciek/socket",
+  "dispatcher_directory": "",
   "view_mode": "Sqlite",
   "http_settings": {
     "http_destination": "localhost:8085"
