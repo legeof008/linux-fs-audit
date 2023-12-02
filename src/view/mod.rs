@@ -9,7 +9,7 @@ use reqwest::Client;
 #[async_trait]
 pub(crate) trait View: Send + Sync {
     async fn update(&self, operation: Operation) -> Result<(), ()>;
-    async fn report(&self, operations: Vec<FileOperatedOn>) -> Result<(), ()>;
+    async fn report(&self, files: FileOperatedOn) -> Result<(), ()>;
 }
 
 pub(crate) struct HttpView {

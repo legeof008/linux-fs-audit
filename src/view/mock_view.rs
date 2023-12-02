@@ -12,7 +12,7 @@ impl View for MockView {
         return Ok(());
     }
 
-    async fn report(&self, operations: Vec<FileOperatedOn>) -> Result<(), ()> {
+    async fn report(&self, _files: FileOperatedOn) -> Result<(), ()> {
         todo!()
     }
 }

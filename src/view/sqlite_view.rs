@@ -16,7 +16,7 @@ create table IF NOT EXISTS operations
                     operation_key TEXT not null,
                     unix_observation_time INTEGER PRIMARY KEY
                 );
-create table IF NOT EXISTS files
+create table IF NOT EXISTS operated_on_files
                 (
                     absolute_path TEXT not null,
                     unix_observation_time INTEGER
@@ -25,7 +25,7 @@ create table IF NOT EXISTS files
 
 impl SqliteView {
     pub(crate) fn new(db_path: &str) -> Self {
-        log::debug!("Script ran: {}",SQL_CREATE_TABLE_IF_NOT_EXIST);
+        log::debug!("Script ran: {}", SQL_CREATE_TABLE_IF_NOT_EXIST);
         Self::create_schema_if_not_present(db_path)
             .expect("Fatal: could not initiate schema, check if your chosen database exists.");
         return Self {
@@ -58,8 +58,20 @@ impl View for SqliteView {
         Ok(())
     }
 
-    async fn report(&self, operations: Vec<FileOperatedOn>) -> Result<(), ()> {
+    async fn report(&self, files: FileOperatedOn) -> Result<(), ()> {
         log::info!("Opening an {} connection", "Sqlite".yellow());
+        let db_connection = Connection::open(self.db_path.clone()).await.unwrap();
+
+        db_connection
+            .clone()
+            .call(move |conn| {
+                conn.execute(
+            "INSERT INTO operated_on_files (absolute_path, unix_observation_time) VALUES (?1,?2)",
+            params![files.name.clone(),files.timestamp.clone()],
+        )
+            })
+            .await
+            .expect("Failed to insert operation data to the database");
         Ok(())
     }
 }

@@ -38,29 +38,16 @@ impl InputPort for UnixSocketPort {
                         let encoded_values = encode!(read_data);
                         log::debug!("Received message: {}", encoded_values);
                         let operation = Operation::new(encoded_values.clone());
-                        let files_changed =
-                            FileOperatedOn::new(encoded_values, previous_timestamp.clone());
-                        if files_changed.is_some() {
-                            log::debug!(
-                                "{}: {:?}",
-                                "File operated on".green(),
-                                operation.iter().clone()
-                            );
-                        }
-
                         if operation.is_some() {
-                            log::debug!(
-                                "{}: {:?}",
-                                "Operation observed".green(),
-                                operation.iter().clone()
-                            );
                             previous_timestamp =
                                 operation.iter().clone().nth(0).unwrap().timestamp.clone();
                             log::debug!("{} : {}", "Previous timestamp".cyan(), previous_timestamp);
-                            self.view
-                                .update(operation.unwrap())
-                                .await
-                                .expect("Error: rendering view is impossible.");
+                            self.update_operation_observed(operation).await;
+                        }
+                        let files_changed =
+                            FileOperatedOn::new(encoded_values, previous_timestamp.clone());
+                        if files_changed.is_some() {
+                            self.report_checked_files(files_changed).await;
                         }
                     }
                     Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
@@ -88,6 +75,33 @@ impl UnixSocketPort {
     }
     fn ascii_encode_and_join(read_data: Vec<u8>) -> String {
         read_data.iter().map(|x| *x as char).collect()
+    }
+
+    async fn report_checked_files(
+        &self,
+        files_changed: Option<Vec<FileOperatedOn>>,
+    ) {
+        let tasks: Vec<_> = files_changed
+            .unwrap()
+            .iter_mut()
+            .map(|item| self.view.report(item.clone()))
+            .collect();
+        for task in tasks {
+            task.await.unwrap()
+        }
+    }
+
+    async fn update_operation_observed(&self, operation: Option<Operation>) {
+        log::debug!(
+            "{}: {:?}",
+            "Operation observed".green(),
+            operation.iter().clone()
+        );
+
+        self.view
+            .update(operation.unwrap())
+            .await
+            .expect("Error: rendering view is impossible.");
     }
 }
 
