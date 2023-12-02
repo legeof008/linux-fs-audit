@@ -6,7 +6,7 @@ use rusqlite::params;
 use std::error::Error;
 use tokio_rusqlite::Connection;
 
-const SQL_CREATE_TABLE_IF_NOT_EXIST: &str = r#"
+const OPERATIONS_SCHEMA: &str = r#"
 create table IF NOT EXISTS operations
                 (
                     user          TEXT not null,
@@ -16,16 +16,21 @@ create table IF NOT EXISTS operations
                     operation_key TEXT not null,
                     unix_observation_time INTEGER PRIMARY KEY
                 );
+"#;
+const FILES_SCHEMA: &str = r#"
 create table IF NOT EXISTS operated_on_files
                 (
                     absolute_path TEXT not null,
                     unix_observation_time INTEGER
                 );
 "#;
+const INSERT_OPERATION: &'static str = "INSERT INTO operations (user,users_group,executable,syscall,operation_key,unix_observation_time) VALUES (?1,?2,?3,?4,?5,?6)";
 
+const INSERT_FILE: &'static str =
+    "INSERT INTO operated_on_files (absolute_path, unix_observation_time) VALUES (?1,?2)";
 impl SqliteView {
     pub(crate) fn new(db_path: &str) -> Self {
-        log::debug!("Script ran: {}", SQL_CREATE_TABLE_IF_NOT_EXIST);
+        log::debug!("Script ran: {}", OPERATIONS_SCHEMA);
         Self::create_schema_if_not_present(db_path)
             .expect("Fatal: could not initiate schema, check if your chosen database exists.");
         return Self {
@@ -37,7 +42,8 @@ impl SqliteView {
         log::info!("Opening an {} connection", "Sqlite".yellow());
         let conn = rusqlite::Connection::open(db_path)?;
         log::debug!("Injecting a {} to {}", "schema".green(), db_path.green());
-        let _ = conn.execute(SQL_CREATE_TABLE_IF_NOT_EXIST, [])?;
+        let _ = conn.execute(OPERATIONS_SCHEMA, [])?;
+        let _ = conn.execute(FILES_SCHEMA, [])?;
         return Ok(());
     }
 }
@@ -51,10 +57,22 @@ impl View for SqliteView {
             "Inserting {}",
             serde_json::to_string(&operation).unwrap().green()
         );
-        db_connection.call(move |conn| conn.execute(
-            "INSERT INTO operations (user,users_group,executable,syscall,operation_key,unix_observation_time) VALUES (?1,?2,?3,?4,?5,?6)",
-            params![operation.user,operation.group,operation.executable,operation.syscall,operation.key.to_string(),operation.timestamp],
-        )).await.expect("Failed to insert operation data to the database");
+        db_connection
+            .call(move |conn| {
+                conn.execute(
+                    INSERT_OPERATION,
+                    params![
+                        operation.user,
+                        operation.group,
+                        operation.executable,
+                        operation.syscall,
+                        operation.key.to_string(),
+                        operation.timestamp
+                    ],
+                )
+            })
+            .await
+            .expect("Failed to insert operation data to the database");
         Ok(())
     }
 
@@ -66,9 +84,9 @@ impl View for SqliteView {
             .clone()
             .call(move |conn| {
                 conn.execute(
-            "INSERT INTO operated_on_files (absolute_path, unix_observation_time) VALUES (?1,?2)",
-            params![files.name.clone(),files.timestamp.clone()],
-        )
+                    INSERT_FILE,
+                    params![files.name.clone(), files.timestamp.clone()],
+                )
             })
             .await
             .expect("Failed to insert operation data to the database");

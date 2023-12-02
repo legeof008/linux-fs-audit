@@ -8,7 +8,7 @@ use tokio::io;
 use tokio::io::Interest;
 use tokio::net::UnixStream;
 
-const STREAM_MAX_SIZE_IN_BYTES: usize = 512;
+const STREAM_MAX_SIZE_IN_BYTES: usize = 1024;
 const INITIAL_BUFFER_VALUE: u8 = 0;
 
 pub(crate) struct UnixSocketPort {
@@ -24,13 +24,13 @@ pub(crate) struct UnixSocketSettings {
 impl InputPort for UnixSocketPort {
     async fn receive(&self) -> io::Result<()> {
         let data_stream_from_unix_socket = UnixStream::connect(&self.socket_path).await?;
+        let mut previous_timestamp = String::new();
         loop {
             let stream_status = data_stream_from_unix_socket
                 .ready(Interest::READABLE)
                 .await?;
 
             let mut read_data = vec![INITIAL_BUFFER_VALUE; STREAM_MAX_SIZE_IN_BYTES];
-            let mut previous_timestamp = String::new();
             if stream_status.is_readable() {
                 log::info!("Unix stream is readable.");
                 match data_stream_from_unix_socket.try_read(&mut read_data) {
@@ -40,7 +40,7 @@ impl InputPort for UnixSocketPort {
                         let operation = Operation::new(encoded_values.clone());
                         if operation.is_some() {
                             previous_timestamp =
-                                operation.iter().clone().nth(0).unwrap().timestamp.clone();
+                               operation.as_ref().unwrap().timestamp.clone();
                             log::debug!("{} : {}", "Previous timestamp".cyan(), previous_timestamp);
                             self.update_operation_observed(operation).await;
                         }
@@ -77,10 +77,7 @@ impl UnixSocketPort {
         read_data.iter().map(|x| *x as char).collect()
     }
 
-    async fn report_checked_files(
-        &self,
-        files_changed: Option<Vec<FileOperatedOn>>,
-    ) {
+    async fn report_checked_files(&self, files_changed: Option<Vec<FileOperatedOn>>) {
         let tasks: Vec<_> = files_changed
             .unwrap()
             .iter_mut()
