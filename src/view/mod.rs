@@ -2,13 +2,14 @@ mod http_view;
 mod mock_view;
 mod sqlite_view;
 
-use crate::serializer::Operation;
+use crate::serializer::{FileOperatedOn, Operation};
 use async_trait::async_trait;
 use reqwest::Client;
 
 #[async_trait]
 pub(crate) trait View: Send + Sync {
     async fn update(&self, operation: Operation) -> Result<(), ()>;
+    async fn report(&self, files: FileOperatedOn) -> Result<(), ()>;
 }
 
 pub(crate) struct HttpView {

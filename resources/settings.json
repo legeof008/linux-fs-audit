@@ -1,4 +1,5 @@
 {
+  "log_level" : "Debug",
   "dispatcher_directory": "",
   "view_mode": "Sqlite",
   "http_settings": {

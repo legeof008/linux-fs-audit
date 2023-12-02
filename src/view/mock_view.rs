@@ -1,4 +1,4 @@
-use crate::serializer::Operation;
+use crate::serializer::{FileOperatedOn, Operation};
 use crate::view::{MockView, View};
 use async_trait::async_trait;
 
@@ -10,5 +10,9 @@ impl View for MockView {
             serde_json::to_string(&operation).unwrap()
         );
         return Ok(());
+    }
+
+    async fn report(&self, _files: FileOperatedOn) -> Result<(), ()> {
+        todo!()
     }
 }
